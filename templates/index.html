@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Collector Game</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        h1, h2 { color: #333; }
+        select, input, button { margin: 10px 0; padding: 5px; }
+        #game-frame { display: none; }
+    </style>
+</head>
+<body>
+    <h1>🌌 Gravity Collector Game</h1>
+    <p>Welcome to the Gravity Collector Game! Explore different planets and collect coins while experiencing varying gravity levels.</p>
+
+    <h2>About the Game</h2>
+    <p>In Gravity Collector, you play as an astronaut exploring different planets in our solar system. Your mission is to collect as many coins as possible while adapting to each planet's unique gravity. Jump, move, and time your actions carefully to succeed!</p>
+
+    <h2>Choose Your Planet</h2>
+    <select id="planet-select">
+        {% for planet in planets %}
+        <option value="{{ planet }}">{{ planet }}</option>
+        {% endfor %}
+    </select>
+
+    <h2>Gravity Comparison</h2>
+    <img src="data:image/png;base64,{{ chart_image }}" alt="Gravity Comparison Chart">
+
+    <h2>Player Information</h2>
+    <input type="number" id="weight-input" min="30" max="200" value="70" step="1">
+    <button onclick="updateWeight()">Update Weight</button>
+    <p id="weight-info"></p>
+
+    <h2>Simulated Game Play</h2>
+    <button onclick="collectCoins()">Collect Coins</button>
+    <p id="coin-info"></p>
+
+    <h2>Game Tips</h2>
+    <ul>
+        <li>Use the arrow keys to move left and right</li>
+        <li>Press the spacebar to jump</li>
+        <li>Collect as many coins as possible before the timer runs out</li>
+        <li>Adapt your movements to the planet's gravity</li>
+        <li>Complete all levels to win the game</li>
+    </ul>
+
+    <h2>Ready to Play?</h2>
+    <button onclick="launchGame()">Launch Game</button>
+    <iframe id="game-frame" src="" width="100%" height="600" style="border:none;"></iframe>
+
+    <script>
+        function updateWeight() {
+            let planet = $('#planet-select').val();
+            let weight = $('#weight-input').val();
+            $.post('/planet_info', {planet: planet, weight: weight}, function(data) {
+                $('#weight-info').html(`Your weight on Earth: ${data.earth_weight} kg<br>Your weight on ${planet}: ${data.planet_weight.toFixed(2)} kg<br>Actual Gravity: ${data.actual_gravity} m/s²<br>Game Gravity: ${data.game_gravity} (scaled for gameplay)`);
+            });
+        }
+
+        function collectCoins() {
+            let planet = $('#planet-select').val();
+            $.post('/collect_coins', {planet: planet}, function(data) {
+                $('#coin-info').html(`You collected ${data.coins_collected} coins!<br>Score on ${planet}: ${data.score}<br>${data.message}`);
+            });
+        }
+
+        function launchGame() {
+            $('#game-frame').attr('src', 'https://gravity-game.onrender.com').show();
+        }
+
+        $(document).ready(function() {
+            updateWeight();
+        });
+    </script>
+</body>
+</html>
