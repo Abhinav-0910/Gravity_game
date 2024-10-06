@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
 import base64
 import random
+import os
 
 app = Flask(__name__)
 
@@ -34,8 +35,15 @@ def create_gravity_chart():
 
 @app.route('/')
 def home():
-    chart_image = create_gravity_chart()
-    return render_template('index.html', planets=planet_info.keys(), chart_image=chart_image)
+    try:
+        chart_image = create_gravity_chart()
+        return render_template('index.html', planets=planet_info.keys(), chart_image=chart_image)
+    except Exception as e:
+        app.logger.error(f"Error rendering template: {str(e)}")
+        app.logger.error(f"Current working directory: {os.getcwd()}")
+        app.logger.error(f"Template folder path: {app.template_folder}")
+        app.logger.error(f"Files in template folder: {os.listdir(app.template_folder)}")
+        return f"An error occurred: {str(e)}", 500
 
 @app.route('/planet_info', methods=['POST'])
 def get_planet_info():
@@ -62,4 +70,5 @@ def collect_coins():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
